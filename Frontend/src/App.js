@@ -2,6 +2,15 @@ import './App.css';
 import config from './config.json';
 
 function App() {
+	function CheckIfCanTranslate(){
+		var originalString = document.getElementById("original").value;
+		
+		if(originalString === ""){
+			return;
+		}
+		else GetTranslation();
+	}
+
 	function GetTranslation(originalString, translationLanguage){
 		originalString = document.getElementById("original").value;
 		translationLanguage = document.getElementById("languages").value;
@@ -39,7 +48,7 @@ function App() {
 				</div>
 				<div className="translateBlocks">
 					<div className="languageContainer">
-						<select id="languages" className="languageSelect" title="languages" onChange={GetTranslation}>
+						<select id="languages" className="languageSelect" title="languages" onChange={CheckIfCanTranslate}>
 							{config.languages.map((language, i) => (
 								<option key={i} value={language}>{language}</option>
 							))}
