@@ -6,14 +6,9 @@ namespace Backend.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class TranslationsController : ControllerBase
+public class TranslationsController(DatabaseContext context) : ControllerBase
 {
-    private readonly DatabaseContext _context;
-
-    public TranslationsController(DatabaseContext context)
-    {
-        _context = context;
-    }
+    private readonly DatabaseContext _context = context;
 
     [HttpGet(Name = "GetTranslation")]
     public async Task<IActionResult> Get(string? originalString, string? translationLanguage)
@@ -25,7 +20,7 @@ public class TranslationsController : ControllerBase
 
         translationLanguage = char.ToUpper(translationLanguage[0]) + translationLanguage[1..];
 
-        Translation? translations = await _context.Translations.FirstOrDefaultAsync(n => n.English.ToLower() == originalString);
+        Translation? translations = await _context.Translations.FirstOrDefaultAsync(n => n.English.Equals(originalString, StringComparison.OrdinalIgnoreCase));
 
         string? result = "";
 

@@ -13,7 +13,7 @@ internal class Program
             Inserts.Add($"INSERT INTO [translation] ([English], [Hungarian], [Spanish], [Chinese], [Portugese]) VALUES (N'{line[0]}', N'{line[1]}', N'{line[2]}', N'{line[3]}', N'{line[4]}')");
         }
 
-        File.WriteAllLines("Inserts.txt", Inserts.ToArray());
+        File.WriteAllLines("Inserts.txt", [.. Inserts]);
         Console.WriteLine("Done!");
         Console.ReadKey();
     }
