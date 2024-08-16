@@ -1,54 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Backend.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Backend.Models;
-using System.Net;
 
-namespace Backend.Controllers
+namespace Backend.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class TranslationsController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class TranslationsController : ControllerBase
-    {
-        private readonly DatabaseContext _context;
+    private readonly DatabaseContext _context;
 
-        public TranslationsController(DatabaseContext context)
+    public TranslationsController(DatabaseContext context)
+    {
+        _context = context;
+    }
+
+    [HttpGet(Name = "GetTranslation")]
+    public async Task<IActionResult> Get(string? originalString, string? translationLanguage)
+    {
+        if (translationLanguage == null || originalString == null || _context.Translations == null)
         {
-            _context = context;
+            return new JsonResult(new Response(null, "Translation attempt failed!"));
         }
 
-        [HttpGet(Name = "GetTranslation")]
-        public async Task<IActionResult> Get(string? originalString, string? translationLanguage)
+        translationLanguage = char.ToUpper(translationLanguage[0]) + translationLanguage[1..];
+
+        Translation? translations = await _context.Translations.FirstOrDefaultAsync(n => n.English.ToLower() == originalString);
+
+        string? result = "";
+
+        if (translations != null)
         {
-            if (translationLanguage == null || originalString == null || _context.Translations == null)
+            System.Reflection.PropertyInfo? prop = typeof(Translation).GetProperty(translationLanguage);
+            if (prop != null)
             {
-                return new JsonResult(new Response(null, "Translation attempt failed!"));
-            }
-
-            translationLanguage = char.ToUpper(translationLanguage[0]) + translationLanguage[1..];
-
-            var translations = await _context.Translations.FirstOrDefaultAsync(n => n.English.ToLower() == originalString);
-
-            string? result = "";
-
-            if(translations != null)
-            {
-                var prop = typeof(Translation).GetProperty(translationLanguage);
-                if (prop != null)
+                object? value = prop.GetValue(translations);
+                if (value != null)
                 {
-                    var value = prop.GetValue(translations);
-                    if (value != null)
-                    {
-                        result = (string)value;
-                    }
+                    result = (string) value;
                 }
             }
-
-            if (string.IsNullOrEmpty(result))
-            {
-                return new JsonResult(new Response(null, "Translation not found in database!"));
-            }
-
-            return new JsonResult(new Response(result, null));
         }
+
+        return string.IsNullOrEmpty(result)
+            ? new JsonResult(new Response(null, "Translation not found in database!"))
+            : (IActionResult) new JsonResult(new Response(result, null));
     }
 }
